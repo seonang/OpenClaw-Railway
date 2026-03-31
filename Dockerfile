@@ -61,7 +61,7 @@ ENV NPM_CONFIG_PREFIX=/data/npm
 ENV NPM_CONFIG_CACHE=/data/npm-cache
 ENV PNPM_HOME=/data/pnpm
 ENV PNPM_STORE_DIR=/data/pnpm-store
-ENV PATH="/data/npm/bin:/data/pnpm:${PATH}"
+ENV PATH="/usr/local/bin:/data/npm/bin:/data/pnpm:${PATH}"
 
 WORKDIR /app
 
