@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "node src/server.js",
     "start": "node src/server.js",
+    "start:google-workspace-mcp": "bash scripts/mcp/google-workspace-http.sh",
     "lint": "node -c src/server.js",
     "test": "node --test",
     "smoke": "node scripts/smoke.js"
