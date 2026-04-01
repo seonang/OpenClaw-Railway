@@ -33,6 +33,10 @@ RUN set -eux; \
     sed -i -E 's/"openclaw"[[:space:]]*:[[:space:]]*"workspace:[^"]+"/"openclaw": "*"/g' "$f"; \
   done
 
+# OpenClaw v2026.3.31 excludes @oxfmt/* and @oxlint/* from pnpm's maturity guard
+# but misses the root oxfmt/oxlint packages themselves.
+# Add the missing exceptions so source builds stay reproducible until upstream includes them.
+
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm build
 ENV OPENCLAW_PREFER_PNPM=1
