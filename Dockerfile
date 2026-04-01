@@ -23,11 +23,16 @@ ENV PATH="/usr/local/bin:/data/npm/bin:/data/pnpm:${PATH}"
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force \
+RUN npm ci --omit=dev \
+  && npm_config_global=true node node_modules/openclaw/scripts/postinstall-bundled-plugins.mjs \
+  && npm cache clean --force \
   && test -f node_modules/openclaw/dist/entry.js \
   && test -d node_modules/openclaw/skills \
   && test -d node_modules/openclaw/assets \
-  && test -f node_modules/@aws-sdk/client-bedrock/package.json
+  && test -f node_modules/openclaw/node_modules/grammy/package.json \
+  && test -f node_modules/openclaw/node_modules/@grammyjs/runner/package.json \
+  && test -f node_modules/openclaw/node_modules/@grammyjs/transformer-throttler/package.json \
+  && test -f node_modules/openclaw/node_modules/@aws-sdk/client-bedrock/package.json
 
 COPY src ./src
 
