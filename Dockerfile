@@ -1,52 +1,3 @@
-# Build openclaw from source to avoid npm packaging gaps (some dist files are not shipped).
-FROM node:22-bookworm AS openclaw-build
-
-# Dependencies needed for openclaw build
-RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    git \
-    ca-certificates \
-    curl \
-    python3 \
-    make \
-    g++ \
-  && rm -rf /var/lib/apt/lists/*
-
-# Install Bun (openclaw build uses it)
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:${PATH}"
-
-RUN corepack enable
-
-WORKDIR /openclaw
-
-# Pin to a known-good ref (tag/branch). Override in Railway template settings if needed.
-# Using a released tag avoids build breakage when `main` temporarily references unpublished packages.
-ARG OPENCLAW_GIT_REF=v2026.3.31
-RUN git clone --depth 1 --branch "${OPENCLAW_GIT_REF}" https://github.com/openclaw/openclaw.git .
-
-# Patch: relax version requirements for packages that may reference unpublished versions.
-# Apply to all extension package.json files to handle workspace protocol (workspace:*).
-RUN set -eux; \
-  find ./extensions -name 'package.json' -type f | while read -r f; do \
-    sed -i -E 's/"openclaw"[[:space:]]*:[[:space:]]*">=[^"]+"/"openclaw": "*"/g' "$f"; \
-    sed -i -E 's/"openclaw"[[:space:]]*:[[:space:]]*"workspace:[^"]+"/"openclaw": "*"/g' "$f"; \
-  done
-
-# OpenClaw v2026.3.31 excludes some freshly published tooling packages from pnpm's
-# maturity guard, but misses a few root packages themselves.
-# Add the missing exceptions so source builds stay reproducible until upstream includes them.
-RUN grep -q '^  - "oxfmt"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\  - "oxfmt"' pnpm-workspace.yaml
-RUN grep -q '^  - "oxlint"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\  - "oxlint"' pnpm-workspace.yaml
-RUN grep -q '^  - "@modelcontextprotocol/sdk"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\  - "@modelcontextprotocol/sdk"' pnpm-workspace.yaml
-
-RUN pnpm install --no-frozen-lockfile
-RUN pnpm build
-ENV OPENCLAW_PREFER_PNPM=1
-RUN pnpm ui:install && pnpm ui:build
-
-
-# Runtime image
 FROM node:22-bookworm
 ENV NODE_ENV=production
 
@@ -57,6 +8,10 @@ RUN apt-get update \
     python3 \
     python3-venv \
   && rm -rf /var/lib/apt/lists/*
+
+# Keep a compatibility ref for the repo's bump script/workflow.
+# The live runtime does not build OpenClaw from source anymore; it installs the released npm package.
+ARG OPENCLAW_GIT_REF=v2026.3.31
 
 # `openclaw update` expects pnpm. Provide it in the runtime image.
 RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
@@ -72,14 +27,11 @@ ENV PATH="/usr/local/bin:/data/npm/bin:/data/pnpm:${PATH}"
 
 WORKDIR /app
 
-# Wrapper deps
+# Install the wrapper's runtime dependencies, including the released OpenClaw npm package.
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-# Copy built openclaw
-COPY --from=openclaw-build /openclaw /openclaw
-
-# Provide an openclaw executable
+# Provide an openclaw executable pinned to the app-installed package to avoid PATH/global-install mismatches.
 RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /app/node_modules/openclaw/dist/entry.js "$@"' > /usr/local/bin/openclaw \
   && chmod +x /usr/local/bin/openclaw
 
