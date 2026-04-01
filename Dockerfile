@@ -27,6 +27,7 @@ RUN npm ci --omit=dev && npm cache clean --force \
   && test -f node_modules/openclaw/dist/entry.js \
   && test -d node_modules/openclaw/skills \
   && test -d node_modules/openclaw/assets
+  && test -f node_modules/@aws-sdk/client-bedrock/package.json
 
 COPY src ./src
 
