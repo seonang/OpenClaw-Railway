@@ -33,9 +33,11 @@ RUN set -eux; \
     sed -i -E 's/"openclaw"[[:space:]]*:[[:space:]]*"workspace:[^"]+"/"openclaw": "*"/g' "$f"; \
   done
 
-# OpenClaw v2026.3.31 excludes @oxfmt/* from pnpm's maturity guard but misses the root oxfmt package itself.
-# Add the missing exception so source builds stay reproducible until upstream includes it.
+# OpenClaw v2026.3.31 excludes @oxfmt/* and @oxlint/* from pnpm's maturity guard
+# but misses the root oxfmt/oxlint packages themselves.
+# Add the missing exceptions so source builds stay reproducible until upstream includes them.
 RUN grep -q '^  - "oxfmt"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\  - "oxfmt"' pnpm-workspace.yaml
+RUN grep -q '^  - "oxlint"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\  - "oxlint"' pnpm-workspace.yaml
 
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm build
