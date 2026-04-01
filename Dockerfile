@@ -36,9 +36,8 @@ RUN set -eux; \
 # OpenClaw v2026.3.31 excludes some freshly published tooling packages from pnpm's
 # maturity guard, but misses a few root packages themselves.
 # Add the missing exceptions so source builds stay reproducible until upstream includes them.
-RUN grep -q '^  - "oxfmt"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\  - "oxfmt"' pnpm-workspace.yaml
-RUN grep -q '^  - "oxlint"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\  - "oxlint"' pnpm-workspace.yaml
-RUN grep -q '^  - "@modelcontextprotocol/sdk"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\  - "@modelcontextprotocol/sdk"' pnpm-workspace.yaml
+RUN grep -q '^ - "oxlint"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\ - "oxlint"' pnpm-workspace.yaml
+RUN grep -q '^ - "@modelcontextprotocol/sdk"$' pnpm-workspace.yaml || sed -i '/^minimumReleaseAgeExclude:$/a\ - "@modelcontextprotocol/sdk"' pnpm-workspace.yaml
 
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm build
@@ -73,8 +72,8 @@ ENV PATH="/usr/local/bin:/data/npm/bin:/data/pnpm:${PATH}"
 WORKDIR /app
 
 # Wrapper deps
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY package.json ./
+RUN npm install --omit=dev && npm cache clean --force
 
 # Copy built openclaw
 COPY --from=openclaw-build /openclaw /openclaw
