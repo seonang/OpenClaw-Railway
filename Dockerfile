@@ -23,7 +23,7 @@ ENV PATH="/usr/local/bin:/data/npm/bin:/data/pnpm:${PATH}"
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --foreground-scripts --loglevel verbose
 
 RUN npm_config_global=true node node_modules/openclaw/scripts/postinstall-bundled-plugins.mjs
 
