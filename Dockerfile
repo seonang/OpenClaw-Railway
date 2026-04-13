@@ -23,16 +23,26 @@ ENV PATH="/usr/local/bin:/data/npm/bin:/data/pnpm:${PATH}"
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev \
-  && npm_config_global=true node node_modules/openclaw/scripts/postinstall-bundled-plugins.mjs \
-  && npm cache clean --force \
-  && test -f node_modules/openclaw/dist/entry.js \
-  && test -d node_modules/openclaw/skills \
-  && test -d node_modules/openclaw/assets \
-  && test -f node_modules/openclaw/node_modules/grammy/package.json \
-  && test -f node_modules/openclaw/node_modules/@grammyjs/runner/package.json \
-  && test -f node_modules/openclaw/node_modules/@grammyjs/transformer-throttler/package.json \
-  && test -f node_modules/openclaw/node_modules/@aws-sdk/client-bedrock/package.json
+RUN npm ci --omit=dev
+
+RUN npm_config_global=true node node_modules/openclaw/scripts/postinstall-bundled-plugins.mjs
+
+RUN npm cache clean --force
+
+RUN test -f node_modules/openclaw/dist/entry.js
+
+RUN test -d node_modules/openclaw/skills || (echo "missing: node_modules/openclaw/skills" && ls -la node_modules/openclaw && exit 1)
+
+RUN test -d node_modules/openclaw/assets || (echo "missing: node_modules/openclaw/assets" && ls -la node_modules/openclaw && exit 1)
+
+RUN test -f node_modules/openclaw/node_modules/grammy/package.json || (echo "missing: grammy" && find node_modules/openclaw -maxdepth 3 -type f | grep 'grammy/package.json' || true && exit 1)
+
+RUN test -f node_modules/openclaw/node_modules/@grammyjs/runner/package.json || (echo "missing: @grammyjs/runner" && find node_modules/openclaw -maxdepth 4 -type f | grep '@grammyjs/runner/package.json' || true && exit 1)
+
+RUN test -f node_modules/openclaw/node_modules/@grammyjs/transformer-throttler/package.json || (echo "missing: @grammyjs/transformer-throttler" && find node_modules/openclaw -maxdepth 4 -type f | grep '@grammyjs/transformer-throttler/package.json' || true && exit 1)
+
+RUN test -f node_modules/openclaw/node_modules/@aws-sdk/client-bedrock/package.json || (echo "missing: @aws-sdk/client-bedrock" && find node_modules/openclaw -maxdepth 4 -type f | grep '@aws-sdk/client-bedrock/package.json' || true && exit 1)
+
 
 COPY src ./src
 
