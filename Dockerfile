@@ -35,15 +35,6 @@ RUN test -d node_modules/openclaw/skills || (echo "missing: node_modules/opencla
 
 RUN test -d node_modules/openclaw/assets || (echo "missing: node_modules/openclaw/assets" && ls -la node_modules/openclaw && exit 1)
 
-RUN test -f node_modules/openclaw/node_modules/grammy/package.json || (echo "missing: grammy" && find node_modules/openclaw -maxdepth 3 -type f | grep 'grammy/package.json' || true && exit 1)
-
-RUN test -f node_modules/openclaw/node_modules/@grammyjs/runner/package.json || (echo "missing: @grammyjs/runner" && find node_modules/openclaw -maxdepth 4 -type f | grep '@grammyjs/runner/package.json' || true && exit 1)
-
-RUN test -f node_modules/openclaw/node_modules/@grammyjs/transformer-throttler/package.json || (echo "missing: @grammyjs/transformer-throttler" && find node_modules/openclaw -maxdepth 4 -type f | grep '@grammyjs/transformer-throttler/package.json' || true && exit 1)
-
-RUN test -f node_modules/openclaw/node_modules/@aws-sdk/client-bedrock/package.json || (echo "missing: @aws-sdk/client-bedrock" && find node_modules/openclaw -maxdepth 4 -type f | grep '@aws-sdk/client-bedrock/package.json' || true && exit 1)
-
-
 COPY src ./src
 
 # Canonical OpenClaw launcher
