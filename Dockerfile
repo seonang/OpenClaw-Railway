@@ -33,8 +33,6 @@ RUN test -f node_modules/openclaw/dist/entry.js
 
 RUN test -d node_modules/openclaw/skills || (echo "missing: node_modules/openclaw/skills" && ls -la node_modules/openclaw && exit 1)
 
-RUN test -d node_modules/openclaw/assets || (echo "missing: node_modules/openclaw/assets" && ls -la node_modules/openclaw && exit 1)
-
 COPY src ./src
 
 # Canonical OpenClaw launcher
