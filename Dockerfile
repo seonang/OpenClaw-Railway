@@ -1,4 +1,4 @@
-FROM node:22-bookworm
+FROM node:22.23.1-bookworm
 
 ENV NODE_ENV=production
 
